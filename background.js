@@ -10,8 +10,8 @@ function doStuffWithTitle(res) {
 
 	var parts = title.split(/ – | - |[:()\[\]|]/);
 
-	var artist = null;
-	var featured = null;
+	var primaryArtist = null;
+	var artists = [];
 	var track = null;
 
 	while(parts.length > 0) {
@@ -47,7 +47,7 @@ function doStuffWithTitle(res) {
 		if(ftIndex !== null) {
 			if(ftIndex === 0) {
 				part = part.substr(part.indexOf(" ") + 1);
-				featured = part.split(/ , | & /);
+				artists = part.split(/ , | & /);
 				parts.splice(0, 1);
 				continue;
 			} else {
@@ -57,8 +57,8 @@ function doStuffWithTitle(res) {
 			}
 		}
 
-		if(artist === null) {
-			artist = part;
+		if(primaryArtist === null) {
+			primaryArtist = part;
 			parts.splice(0, 1);
 			continue;
 		}
@@ -72,12 +72,18 @@ function doStuffWithTitle(res) {
 		parts.splice(0, 1);
 	}
 
-	//console.log('artist:"' + artist + '"track:"' + track + '"');
-	console.log("Artist: " + artist);
+	console.log("Artist: " + primaryArtist);
 	console.log("Track: " + track);
-	console.log("Featuring: " + featured);
+	console.log("Featuring: " + artists);
 
-	var search = 'artist:"' + artist + '"track:"' + track + '"';
+	artists.unshift(primaryArtist);
+
+	var artistSearch = "";
+	for(i = 0; i < artists.length; i++) {
+		artistSearch += 'artist:"' + artists[i] + '"';
+	}
+
+	var search = artistSearch + 'track:"' + track + '"';
 	var url = "https://play.spotify.com/search/" + encodeURIComponent(search);
 
 	chrome.tabs.create({"url": url});
