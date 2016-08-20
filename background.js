@@ -4,18 +4,22 @@ var urlRegex = /^https?:\/\/(?:[^./?#]+\.)?youtube\.com\/watch/;
 
 var partMatchFails = ["lyrics", "lyric", "official", "video", "remix"];
 
-function doStuffWithTitle(res) {
+var artists = [];
+var track = null;
+
+function parseContentScriptResponse(res) {
 	var user = res.user;
 	var title = res.title;
 
 	var parts = title.split(/ – | - |[:()\[\]|]/);
 
 	var primaryArtist = null;
-	var artists = [];
-	var track = null;
+	// var artists = [];
+	// var track = null;
 
 	while(parts.length > 0) {
-		var part = parts[0].trim().toLowerCase();
+		var part = parts[0].trim();
+		var partLower = part.toLowerCase();
 
 		if(part === "") {
 			parts.splice(0, 1);
@@ -24,7 +28,7 @@ function doStuffWithTitle(res) {
 
 		var cont = false;
 		for(var j = 0; j < partMatchFails; j++) {
-			if(part.includes(partMatchFails[j])) {
+			if(partLower.includes(partMatchFails[j])) {
 				cont = true;
 				break;
 			}
@@ -36,11 +40,11 @@ function doStuffWithTitle(res) {
 		}
 
 		var ftIndex = null;
-		if(part.includes(" ft.")) {
-			ftIndex = part.indexOf(" ft.");
-		} else if(part.includes(" feat")) {
-			ftIndex = part.indexOf(" feat");
-		} else if(part.startsWith("ft.") || part.startsWith("feat")) {
+		if(partLower.includes(" ft.")) {
+			ftIndex = partLower.indexOf(" ft.");
+		} else if(partLower.includes(" feat")) {
+			ftIndex = partLower.indexOf(" feat");
+		} else if(partLower.startsWith("ft.") || partLower.startsWith("feat")) {
 			ftIndex = 0;
 		}
 
@@ -57,6 +61,7 @@ function doStuffWithTitle(res) {
 			}
 		}
 
+		// TODO: Split primary artist part on ',', '&' just like featured artists
 		if(primaryArtist === null) {
 			primaryArtist = part;
 			parts.splice(0, 1);
@@ -78,19 +83,56 @@ function doStuffWithTitle(res) {
 
 	artists.unshift(primaryArtist);
 
-	var artistSearch = "";
-	for(i = 0; i < artists.length; i++) {
-		artistSearch += 'artist:"' + artists[i] + '"';
-	}
-
-	var search = artistSearch + 'track:"' + track + '"';
-	var url = "https://play.spotify.com/search/" + encodeURIComponent(search);
-
-	chrome.tabs.create({"url": url});
+	populatePopup();
 }
 
-chrome.browserAction.onClicked.addListener(function(tab) {
+function populatePopup() {
+	$("#artists-input textarea").val(artists.join("\n"));
+	$("#track-input input").val(track);
+}
+
+// <iframe src="https://embed.spotify.com/?uri=spotify:track:32OlwWuMpZ6b0aN2RZOeMS" width="250" height="80" frameborder="0" allowtransparency="true"></iframe>
+
+$(document).ready(function() {
+	$("#submit-search").click(function() {
+		artists = $("#artists-input textarea").val().split("\n");
+		track = $("#track-input input").val();
+
+		var artistSearch = "";
+		for(i = 0; i < artists.length; i++) {
+			artistSearch += 'artist:"' + artists[i] + '"';
+		}
+
+		var query = artistSearch + 'track:"' + track + '"';
+		search(query);
+	});
+});
+
+var iframeStart = '<iframe src="https://embed.spotify.com/?theme=white&uri=';
+var iframeEnd = '" width="250" height="80" frameborder="0" allowtransparency="true"></iframe>';
+
+function search(query) {
+	/*var url = "https://play.spotify.com/search/" + encodeURIComponent(search);
+	chrome.tabs.create({"url": url});*/
+
+	$("#search-results").empty();
+
+	$.get(
+		"https://api.spotify.com/v1/search",
+		{type: "track", limit: 5, q: query},
+		function(data) {
+			var items = data.tracks.items;
+			for(var i = 0; i < items.length; i++) {
+				var uri = items[i].uri;
+				$("#search-results").append(iframeStart + uri + iframeEnd);
+			}
+		}
+	);
+}
+
+chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+	var tab = tabs[0];
 	if(urlRegex.test(tab.url)) {
-		chrome.tabs.sendMessage(tab.id, {text: "report_back"}, doStuffWithTitle);
+		chrome.tabs.sendMessage(tab.id, {text: "report_back"}, parseContentScriptResponse);
 	}
 });

@@ -10,17 +10,18 @@
 			"19": "images/icon.png",
 			"38": "images/icon-hidpi.png"
 		},
-		"default_title": "Open song in Spotify"
+		"default_title": "Open song in Spotify",
+		"default_popup": "popup.html"
 	},
 	"permissions": [
-		//"https://www.youtube.com/watch",
+		"tabs",
 		"activeTab",
 		"webNavigation"
 	],
-	"background": {
+	/*"background": {
 		"scripts": ["background.js"],
 		"persistent": false
-	},
+	},*/
 	"content_scripts": [{
 		"matches": ["*://*.youtube.com/watch*"],
 		"js": ["jquery-3.1.0.min.js", "content.js"]
