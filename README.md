@@ -5,8 +5,8 @@ A Google Chrome extension to quickly go from a YouTube music video to a Spotify 
 ## Plans
 
 I plan on improving this over time, but I doubt I'll ever truly finish this. These are some of my ideas:
- - Icon should be in a disabled state unless the current tab's url is in `youtube.com/watch`
- - Automatically add tracks to a Spotify playlist called "From YouTube" using Spotify's web API
+ - Add a button next to each search result to add that track to a Spotify playlist called "From YouTube"
+  - Requires authentication
  - Make my own icon so Spotify doesn't sue me
 
 ## Install
