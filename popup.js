@@ -14,8 +14,6 @@ function parseContentScriptResponse(res) {
 	var parts = title.split(/ – | - |[:()\[\]|]/);
 
 	var primaryArtist = null;
-	// var artists = [];
-	// var track = null;
 
 	while(parts.length > 0) {
 		var part = parts[0].trim();
@@ -90,8 +88,6 @@ function populatePopup() {
 	$("#artists-input textarea").val(artists.join("\n"));
 	$("#track-input input").val(track);
 }
-
-// <iframe src="https://embed.spotify.com/?uri=spotify:track:32OlwWuMpZ6b0aN2RZOeMS" width="250" height="80" frameborder="0" allowtransparency="true"></iframe>
 
 $(document).ready(function() {
 	$("#submit-search").click(function() {

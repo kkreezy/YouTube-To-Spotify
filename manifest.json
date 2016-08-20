@@ -18,10 +18,6 @@
 		"activeTab",
 		"webNavigation"
 	],
-	/*"background": {
-		"scripts": ["background.js"],
-		"persistent": false
-	},*/
 	"content_scripts": [{
 		"matches": ["*://*.youtube.com/watch*"],
 		"js": ["jquery-3.1.0.min.js", "content.js"]
