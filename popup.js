@@ -2,7 +2,8 @@
 // It matches URLs like: http[s]://[...]youtube.com/watch[...]
 var urlRegex = /^https?:\/\/(?:[^./?#]+\.)?youtube\.com\/watch/;
 
-var partMatchFails = ["lyrics", "lyric", "official", "video", "remix"];
+var partMatchFails = ["lyrics", "lyric", "official", "video", "remix", "explicit"];
+var conjunctionRegex = /, | & | and | + /;
 
 var artists = [];
 var track = null;
@@ -49,25 +50,31 @@ function parseContentScriptResponse(res) {
 		if(ftIndex !== null) {
 			if(ftIndex === 0) {
 				part = part.substr(part.indexOf(" ") + 1);
-				artists = part.split(/ , | & /);
+				let featured = part.split(conjunctionRegex);
+				artists.push(...featured);
+
 				parts.splice(0, 1);
 				continue;
 			} else {
 				var featPart = part.substr(ftIndex);
+
 				part = part.substr(0, ftIndex).trim();
 				parts.splice(1, 0, featPart);
 			}
 		}
 
-		// TODO: Split primary artist part on ',', '&' just like featured artists
 		if(primaryArtist === null) {
-			primaryArtist = part;
+			let primaryArtists = part.split(conjunctionRegex);
+			primaryArtist = primaryArtists[0];
+			artists.unshift(...primaryArtists);
+
 			parts.splice(0, 1);
 			continue;
 		}
 
 		if(track === null) {
 			track = part.replace(/"/g, "");
+
 			parts.splice(0, 1);
 			continue;
 		}
@@ -78,8 +85,6 @@ function parseContentScriptResponse(res) {
 	console.log("Artist: " + primaryArtist);
 	console.log("Track: " + track);
 	console.log("Featuring: " + artists);
-
-	artists.unshift(primaryArtist);
 
 	populatePopup();
 	search(getQuery());
