@@ -1,0 +1,9 @@
+#########################################
+## IDE Stuff
+
+# Sublime Projects
+*.sublime-workspace
+*.sublime-project
+
+
+#########################################
