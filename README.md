@@ -1,6 +1,8 @@
 # YouTube to Spotify
 
-A Google Chrome extension to quickly go from a YouTube music video to a Spotify song. Installs a browser action icon in Chrome which, when clicked on in a `youtube.com/watch` url, will parse the current video's title for an artist and track name, then open a new tab and search for the song in Spotify's web app.
+A Google Chrome extension to quickly go from a YouTube music video to a Spotify track. Installs a browser action icon in Chrome which, when clicked on in a `youtube.com/watch` url, will parse the current video's title for an artist and track name, then search Spotify for that track and artist, and display the first five results inline.
+
+![](http://i.imgur.com/L5wYbYn.png)
 
 ## Plans
 
