@@ -1,48 +1,56 @@
 <!doctype html>
 <html>
-  <head>
-    <title>Spotify Search</title>
+	<head>
+		<title>Spotify Search</title>
 
-    <!-- Worker Bee -->
-    <script src="jquery-3.1.0.min.js"></script>
-    <script src="popup.js"></script>
+		<!-- Worker Bee -->
+		<script src="jquery-3.1.0.min.js"></script>
+		<script src="popup.js"></script>
 
-    <!-- Fonts -->
-    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+		<!-- Fonts -->
+		<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
+		<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 
-    <!-- Styles -->
-    <script src="material.min.js"></script>
-    <link rel="stylesheet" href="https://code.getmdl.io/1.2.0/material.green-deep_orange.min.css">
-    <link rel="stylesheet" href="style.css">
-  </head>
-  <body>
-    <h3>Spotify Search</h3>
+		<!-- Styles -->
+		<script src="material.min.js"></script>
+		<link rel="stylesheet" href="https://code.getmdl.io/1.2.0/material.green-red.min.css">
+		<link rel="stylesheet" href="style.css">
+	</head>
+	<body>
+		<h3>Spotify Search</h3>
 
-    <h5>Artists</h5>
-    <p class="caption">One artist name per line.</p>
-    <form action="#">
-      <div id="artists-input" class="mdl-textfield mdl-js-textfield">
-        <textarea class="mdl-textfield__input" type="text" rows= "3" id="sample5" ></textarea>
-        <label class="mdl-textfield__label" for="sample5"><!-- Artist names. One per line. --></label>
-      </div>
-    </form>
+		<h5>Artists</h5>
+		<p class="caption">One artist name per line.</p>
+		<form action="#">
+			<div id="artists-input" class="mdl-textfield mdl-js-textfield">
+				<textarea class="mdl-textfield__input" type="text" rows= "3" id="sample5" ></textarea>
+				<label class="mdl-textfield__label" for="sample5"><!-- Artist names. One per line. --></label>
+			</div>
+		</form>
 
-    <h5>Track Name</h5>
-    <form action="#">
-      <div id="track-input" class="mdl-textfield mdl-js-textfield">
-        <input class="mdl-textfield__input" type="text" id="sample1">
-        <label class="mdl-textfield__label" for="sample1"><!-- Track Name --></label>
-      </div>
-    </form>
+		<h5>Track Name</h5>
+		<form action="#">
+			<div id="track-input" class="mdl-textfield mdl-js-textfield">
+				<input class="mdl-textfield__input" type="text" id="sample1">
+				<label class="mdl-textfield__label" for="sample1"><!-- Track Name --></label>
+			</div>
+		</form>
 
-    <!-- Raised button with ripple -->
-    <button id="submit-search" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored" style="color: white">
-      Search Spotify
-    </button>
+		<!-- Raised button with ripple -->
+		<button id="submit-search" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored" style="color: white">
+			Search Spotify
+		</button>
 
-    <div id="search-results">
-    </div>
-  </body>
+		<div id="search-results">
+		</div>
+
+		<div id="loading-spinner" class="mdl-spinner mdl-spinner--single-color mdl-js-spinner"></div>
+
+		<!-- <h5 id="message"></h5> -->
+
+		<div id="toast" class="mdl-js-snackbar mdl-snackbar" style="visibility: hidden">
+			<div class="mdl-snackbar__text"></div>
+			<button class="mdl-snackbar__action" type="button"></button>
+		</div>
+	</body>
 </html>
-

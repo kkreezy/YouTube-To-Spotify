@@ -82,6 +82,7 @@ function parseContentScriptResponse(res) {
 	artists.unshift(primaryArtist);
 
 	populatePopup();
+	search(getQuery());
 }
 
 function populatePopup() {
@@ -91,39 +92,83 @@ function populatePopup() {
 
 $(document).ready(function() {
 	$("#submit-search").click(function() {
-		artists = $("#artists-input textarea").val().split("\n");
-		track = $("#track-input input").val();
-
-		var artistSearch = "";
-		for(i = 0; i < artists.length; i++) {
-			artistSearch += 'artist:"' + artists[i] + '"';
-		}
-
-		var query = artistSearch + 'track:"' + track + '"';
-		search(query);
+		search(getQuery());
 	});
 });
 
-var iframeStart = '<iframe src="https://embed.spotify.com/?theme=white&uri=';
-var iframeEnd = '" width="250" height="80" frameborder="0" allowtransparency="true"></iframe>';
+function getQuery() {
+	artists = $("#artists-input textarea").val().split("\n");
+	track = $("#track-input input").val();
+
+	var artistSearch = "";
+	for(i = 0; i < artists.length; i++) {
+		artistSearch += 'artist:"' + artists[i] + '"';
+	}
+
+	return artistSearch + 'track:"' + track + '"';
+}
 
 function search(query) {
-	/*var url = "https://play.spotify.com/search/" + encodeURIComponent(search);
-	chrome.tabs.create({"url": url});*/
-
 	$("#search-results").empty();
+	$("#loading-spinner").addClass("is-active");
 
 	$.get(
 		"https://api.spotify.com/v1/search",
-		{type: "track", limit: 5, q: query},
+		{ type: "track", limit: 5, q: query },
 		function(data) {
 			var items = data.tracks.items;
-			for(var i = 0; i < items.length; i++) {
-				var uri = items[i].uri;
-				$("#search-results").append(iframeStart + uri + iframeEnd);
+			if(items.length > 0) {
+				loadTracks(items);
+			} else {
+				$("#loading-spinner").removeClass("is-active");
+				displayMessage("No tracks found.", "#f44336");
 			}
 		}
 	);
+}
+
+function displayMessage(message, color) {
+	$("#toast").css("visibility", "visible");
+	var notification = document.querySelector('#toast');
+	notification.MaterialSnackbar.showSnackbar({ "message": message });
+
+	/*$("#message").text(message);
+	$("#message").css({
+		"background-color": color,
+		"visibility": "visible",
+		"position": "static"
+	});
+
+	window.setTimeout(function() {
+		$("#message").css({
+			"visibility": "hidden",
+			"position": "absolute"
+		});	
+	}, 3000);*/
+}
+
+function loadTracks(items) {
+	var loadedCount = 0;
+	for(var i = 0; i < items.length; i++) {
+		let uri = items[i].uri;
+
+		let iframeId = "track-result-" + i;
+		let $iframe = $("<iframe>", { id: iframeId, height: "80", frameborder: "0", allowtransparency: "true",
+			src: "https://embed.spotify.com/?theme=white&uri=" + uri });
+		$iframe.css("visibility", "hidden");
+		$iframe.css("position", "absolute");
+		/*jshint loopfunc: true */
+		$iframe.on('load', function() {
+			$iframe.css("visibility", "visible");
+			$iframe.css("position", "static");
+			loadedCount++;
+			if(loadedCount === items.length) {
+				$("#loading-spinner").removeClass("is-active");
+			}
+		});
+
+		$("#search-results").append($iframe);
+	}
 }
 
 chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {

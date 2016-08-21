@@ -32,3 +32,18 @@ h5 {
 	padding-top: 5px;
 	padding-bottom: 5px;
 }
+
+#loading-spinner {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+/*#message {
+	padding: 20px;
+	height: 30px;
+	line-height: 30px;
+	visibility: hidden;
+	position: absolute;
+	color: white;
+}*/
