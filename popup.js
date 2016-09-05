@@ -1,3 +1,5 @@
+var serverUrl = "http://localhost:3000/";
+
 // Regex-pattern to check URLs against. 
 // It matches URLs like: http[s]://[...]youtube.com/watch[...]
 var urlRegex = /^https?:\/\/(?:[^./?#]+\.)?youtube\.com\/watch/;
@@ -7,6 +9,18 @@ var conjunctionRegex = /, | & | and | + /;
 
 var artists = [];
 var track = null;
+
+var user;
+chrome.storage.sync.get("user", (items) => {
+	user = items.user;
+	if(user === undefined) {
+		user = {};
+	}
+});
+
+function saveUserData() {
+	chrome.storage.sync.set({ "user": user });
+}
 
 function parseContentScriptResponse(res) {
 	var user = res.user;
@@ -95,8 +109,8 @@ function populatePopup() {
 	$("#track-input input").val(track);
 }
 
-$(document).ready(function() {
-	$("#submit-search").click(function() {
+$(document).ready(() => {
+	$("#submit-search").click(() => {
 		search(getQuery());
 	});
 });
@@ -120,7 +134,7 @@ function search(query) {
 	$.get(
 		"https://api.spotify.com/v1/search",
 		{ type: "track", limit: 5, q: query },
-		function(data) {
+		(data) => {
 			var items = data.tracks.items;
 			if(items.length > 0) {
 				loadTracks(items);
@@ -136,47 +150,117 @@ function displayMessage(message, color) {
 	$("#toast").css("visibility", "visible");
 	var notification = document.querySelector('#toast');
 	notification.MaterialSnackbar.showSnackbar({ "message": message });
-
-	/*$("#message").text(message);
-	$("#message").css({
-		"background-color": color,
-		"visibility": "visible",
-		"position": "static"
-	});
-
-	window.setTimeout(function() {
-		$("#message").css({
-			"visibility": "hidden",
-			"position": "absolute"
-		});	
-	}, 3000);*/
 }
 
 function loadTracks(items) {
 	var loadedCount = 0;
+	/*jshint loopfunc: true */
 	for(var i = 0; i < items.length; i++) {
-		let uri = items[i].uri;
+		let item = items[i];
 
-		let iframeId = "track-result-" + i;
-		let $iframe = $("<iframe>", { id: iframeId, height: "80", frameborder: "0", allowtransparency: "true",
-			src: "https://embed.spotify.com/?theme=white&uri=" + uri });
-		$iframe.css("visibility", "hidden");
-		$iframe.css("position", "absolute");
-		/*jshint loopfunc: true */
-		$iframe.on('load', function() {
-			$iframe.css("visibility", "visible");
-			$iframe.css("position", "static");
+		let $div = $("<div>", { class: "track" });
+		$div.css({
+			"visibility": "hidden",
+			"position": "absolute"
+		});
+
+		let $iframe = $("<iframe>", { id: "track-result-" + i, height: "80", frameborder: "0",
+			allowtransparency: "true", src: "https://embed.spotify.com/?theme=white&uri=" + item.uri });
+		$iframe.css({
+			"display": "inline-block",
+			"width": "calc(100% - 48px)"
+		});
+
+		$iframe.on('load', () => {
+			$div.css({
+				"visibility": "visible",
+				"position": "static"
+			});
 			loadedCount++;
 			if(loadedCount === items.length) {
 				$("#loading-spinner").removeClass("is-active");
 			}
 		});
+		
+		let $img = $("<img>", { src: "images/ic_add_black_48dp_1x.png" });
+		$img.css({
+			"opacity": "0.6"
+		});
+		$img.click(() => {
+			saveTrackToSpotify(item);
+		});
 
-		$("#search-results").append($iframe);
+		$($div).append($iframe);
+		$($div).append($img);
+		$("#search-results").append($div);
 	}
 }
 
-chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+// From: http://stackoverflow.com/a/8809472
+function generateUUID(){
+	var d = new Date().getTime();
+	if(window.performance && typeof window.performance.now === "function"){
+		d += performance.now(); //use high-precision timer if available
+	}
+	var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+		var r = (d + Math.random()*16)%16 | 0;
+		d = Math.floor(d/16);
+		return (c=='x' ? r : (r&0x3|0x8)).toString(16);
+	});
+	return uuid;
+}
+
+function getClientId() {
+	if(user.clientId === undefined) {
+		user.clientId = generateUUID();
+		saveUserData();
+	}
+	return user.clientId;
+}
+
+function directToAuthenticationServer(info) {
+	var url = serverUrl + "authenticate?clientId=" + getClientId() + "&saveTrack=true&trackUri=" + info.uri;
+	chrome.tabs.create({ url: url });
+}
+
+function requestServerToSaveTrackToSpotify(info) {
+	var xhr = new XMLHttpRequest();
+	xhr.open("POST", serverUrl + "saveTrack?clientId=" + getClientId() +
+		"&spotifyId=" + user.spotifyId + "&trackUri=" + info.uri, true);
+	xhr.onreadystatechange = function() {
+		if(xhr.readyState == 4) {
+			var res = JSON.parse(xhr.responseText);
+			if(!res.ok) {	// TODO: Change [PLUS] to [CHECK] in popup
+				console.log(res.error);
+			}
+		}
+	};
+	xhr.send();
+}
+
+function saveTrackToSpotify(info) {
+	if(user.spotifyId === undefined) {
+		var xhr = new XMLHttpRequest();
+		xhr.open("GET", serverUrl + "userInfo?clientId=" + getClientId(), true);
+		xhr.onreadystatechange = function() {
+			if(xhr.readyState == 4) {
+				var res = JSON.parse(xhr.responseText);
+				if(res.userAuthenticated) {
+					user.spotifyId = res.spotifyId;
+					saveUserData();
+					requestServerToSaveTrackToSpotify(info);
+				} else {
+					directToAuthenticationServer(info);
+				}
+			}
+		};
+		xhr.send();
+	} else {
+		requestServerToSaveTrackToSpotify(info);
+	}
+}
+
+chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
 	var tab = tabs[0];
 	if(urlRegex.test(tab.url)) {
 		chrome.tabs.sendMessage(tab.id, {text: "report_back"}, parseContentScriptResponse);

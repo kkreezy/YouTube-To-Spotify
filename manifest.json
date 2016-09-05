@@ -16,7 +16,9 @@
 	"permissions": [
 		"tabs",
 		"activeTab",
-		"webNavigation"
+		"webNavigation",
+		"storage",
+		"http://localhost:3000/"
 	],
 	"content_scripts": [{
 		"matches": ["*://*.youtube.com/watch*"],
