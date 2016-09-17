@@ -26,7 +26,8 @@ function parseContentScriptResponse(res) {
 	var user = res.user;
 	var title = res.title;
 
-	var parts = title.split(/ – | - |[:()\[\]|]/);
+	title = title.replace(/\u2013|\u2014/g, "-");
+	var parts = title.split(/ - |[:()\[\]|]/);
 
 	var primaryArtist = null;
 
@@ -39,15 +40,15 @@ function parseContentScriptResponse(res) {
 			continue;
 		}
 
-		var cont = false;
+		var skip = false;
 		for(var j = 0; j < partMatchFails; j++) {
 			if(partLower.includes(partMatchFails[j])) {
-				cont = true;
+				skip = true;
 				break;
 			}
 		}
 
-		if(cont) {
+		if(skip) {
 			parts.splice(0, 1);
 			continue;
 		}
