@@ -10,7 +10,6 @@ I plan on improving this over time, but I doubt I'll ever truly finish this. The
  - Add a button next to each search result to add that track to a Spotify playlist called "From YouTube"
   - Requires authentication
  - Make my own icon so Spotify doesn't sue me
- - Add button to swap artists and track name (for the case that the track name is listed first)
 
 ## Install
 
